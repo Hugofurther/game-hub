@@ -1,34 +1,44 @@
 import { Button, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
-// import usePlatforms from "../hooks/usePlatforms";
 import { BsChevronDown } from "react-icons/bs";
-// import { Platform } from "../hooks/useGames";
 
-// interface Props {
-//   onSelectPlatform: (platform: Platform) => void;
-//   selectedPlatform: Platform | null;
-// }
+interface Props {
+  onSelectSortOrder: (sortOrder: string) => void;
+  sortOrder: string;
+}
 
-// const PlatformSelector = ({ onSelectPlatform, selectedPlatform }: Props) => {
-const PlatformSelector = () => {
-  //   const { data, error } = usePlatforms();
+const SortSelector = ({ onSelectSortOrder, sortOrder }: Props) => {
+  // Available fields: name, released, added, created, updated, rating, metacritic.  Reverse the sort order by adding a hyphen, for example: -released
+  const sortOrders = [
+    { value: "", label: "Relevance" },
+    { value: "-added", label: "Date Added" },
+    { value: "name", label: "Name" },
+    { value: "-released", label: "Date Released" },
+    { value: "-metacritic", label: "Popularity" },
+    { value: "-rating", label: "Average Rating" },
+  ];
 
-  //   if (error) return null;
+  const currentSortOrder = sortOrders.find(
+    (order) => order.value === sortOrder
+  );
 
   return (
     <Menu>
       <MenuButton as={Button} rightIcon={<BsChevronDown />}>
-        Sort by: Relevance
+        Sort by: {currentSortOrder?.label || "Relevance"}
       </MenuButton>
       <MenuList>
-        <MenuItem>Relevance</MenuItem>
-        <MenuItem>Date Added</MenuItem>
-        <MenuItem>Name</MenuItem>
-        <MenuItem>Release Date</MenuItem>
-        <MenuItem>Popularity</MenuItem>
-        <MenuItem>Average Rating</MenuItem>
+        {sortOrders.map((order) => (
+          <MenuItem
+            onClick={() => onSelectSortOrder(order.value)}
+            key={order.value}
+            value={order.value}
+          >
+            {order.label}
+          </MenuItem>
+        ))}
       </MenuList>
     </Menu>
   );
 };
 
-export default PlatformSelector;
+export default SortSelector;
