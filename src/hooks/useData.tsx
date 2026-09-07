@@ -9,38 +9,50 @@ interface FetchResponse<T> {
 
 const useData = <T,>(
   endpoint: string,
-  requestConfig?: AxiosRequestConfig,
-  deps?: any[]
+  requestConfig: AxiosRequestConfig = {},
+  deps: any[] = []
 ) => {
   const [data, setData] = useState<T[]>([]);
   const [error, setError] = useState("");
   const [isLoading, setLoading] = useState(false);
 
-  useEffect(
-    () => {
-      const controller = new AbortController();
+  useEffect(() => {
+    const controller = new AbortController();
+    const { params: requestParams, ...requestOptions } = requestConfig;
 
-      setLoading(true);
+    const path = endpoint.replace(/^\/+/, "");
 
-      apiClient
-        .get<FetchResponse<T>>(endpoint, {
-          signal: controller.signal,
-          ...requestConfig,
-        })
-        .then((res) => {
-          setData(res.data.results);
-          setLoading(false);
-        })
-        .catch((err) => {
-          if (err instanceof CanceledError) return;
-          setError(err.message);
-          setLoading(false);
-        });
+    setError("");
+    setLoading(true);
 
-      return () => controller.abort();
-    },
-    deps ? [...deps] : []
-  );
+    apiClient
+      .get<FetchResponse<T>>("/", {
+        ...requestOptions,
+        signal: controller.signal,
+        params: {
+          ...(requestParams ?? {}),
+          path,
+        },
+      })
+      .then((res) => {
+        setData(res.data.results);
+        setLoading(false);
+      })
+      .catch((err: unknown) => {
+        if (err instanceof CanceledError) {
+          return;
+        }
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : "An unexpected error occurred."
+        );
+        setLoading(false);
+      });
+
+    return () => controller.abort();
+  }, deps);
 
   return { data, error, isLoading };
 };
